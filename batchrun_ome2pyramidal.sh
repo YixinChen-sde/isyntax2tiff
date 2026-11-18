@@ -14,11 +14,12 @@
 # Load necessary modules (if required)
 module use $HOME/local/share/lmodfiles
 module load pathologysdk/2.0-L1
-module load miniconda3
-source activate philips
+source "$HOME/miniconda3/bin/activate" philips   # was: module load miniconda3; source activate philips
+export LD_LIBRARY_PATH="$CONDA_PREFIX/lib:$LD_LIBRARY_PATH"   # RHEL 9: SDK needs libcrypto 1.1, tinyxml, libpython3.6 from the env
+set -e   # a failed step fails the job (no false COMPLETED)
 
 # Define the input folder and output directory
-OUTPUT_DIR=./outputs
+OUTPUT_DIR=${OUTPUT_DIR:-./outputs}   # override: sbatch --export=ALL,OUTPUT_DIR=...
 
 # Create output directory if it doesn't exist
 mkdir -p "$OUTPUT_DIR"
@@ -33,11 +34,12 @@ if [ -z "$IMAGE" ]; then
 fi
 
 # Get the basename without extension
-BASENAME=$(basename "$IMAGE" .i2syntax)
+BASENAME=$(basename "${IMAGE%.*}")   # strips .i2syntax or .isyntax
 
 echo "converting $BASENAME to pyramidal-TIFF"
 
 # Step 3: Convert OME-TIFF to pyramidal TIFF
-python ome2pyramidaltiff.py --path "$OUTPUT_DIR/${BASENAME}.ome.tiff" --output "$OUTPUT_DIR/${BASENAME}.tiff"
+# the env's python, whatever else is on PATH
+"$CONDA_PREFIX/bin/python" ome2pyramidaltiff.py --path "$OUTPUT_DIR/${BASENAME}.ome.tiff" --output "$OUTPUT_DIR/${BASENAME}.tiff"
 
 echo "Done $BASENAME"
