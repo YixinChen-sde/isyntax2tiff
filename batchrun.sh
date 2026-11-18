@@ -24,7 +24,8 @@ OUTPUT_DIR=${OUTPUT_DIR:-./outputs}   # override: sbatch --export=ALL,OUTPUT_DIR
 mkdir -p "$OUTPUT_DIR"
 
 # Get the image filename from the input list
-IMAGE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" input_list.txt)
+INPUT_LIST=${INPUT_LIST:-input_list.txt}   # override: sbatch --export=ALL,INPUT_LIST=...
+IMAGE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$INPUT_LIST")
 
 # Safety check: if empty, exit gracefully
 if [ -z "$IMAGE" ]; then
